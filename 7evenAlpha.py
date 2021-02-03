@@ -1,7 +1,8 @@
-from seleniumwire import webdriver
+from selenium import webdriver
 from selenium.webdriver.common.by import By
 from discord_webhook import DiscordWebhook, DiscordEmbed
 from selenium.webdriver.common.proxy import Proxy, ProxyType
+from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -10,6 +11,7 @@ from selenium.webdriver.common.keys import Keys
 import threading
 import time
 import subprocess
+from win32process import CREATE_NO_WINDOW
 import re
 #from subprocess import open
 from random import randrange
@@ -150,20 +152,24 @@ class AsusMonitorThread(threading.Thread):
     webhookImage = "blank"
     webhookTitle = "blank"
     webhookLink = "https://discord.com/api/webhooks/803304991028281370/2oznki3M59Cb22A6GCE3hO1aBBCesysCnAR6Uh5SJwTazPO-O_gD7C3rDTlNOXxqT3ET"
-    def __init__(self, productLink, proxyLink, statusPath):
+    def __init__(self, productLink, proxyLink, proxyUser, proxyPass, statusPath, commandsPath):
         threading.Thread.__init__(self)
         self.productLink = productLink
         self.proxyLink = proxyLink
+        self.proxyUser = proxyUser
+        self.proxyPass = proxyPass
         self.statusPath = statusPath
+        self.commandsPath = commandsPath
 
     def checkStock(self, driver):
         wait = WebDriverWait(driver, 10)
 
         driver.get(self.productLink)
-        time.sleep(3)
+        time.sleep(4)
+        driver.get_screenshot_as_file("screenshots/productPage.png")
         #
         try:
-            arrivalNotice = wait.until(EC.visibility_of_element_located((By.ID, "item_notify")))
+            arrivalNotice = wait.until(EC.element_to_be_clickable((By.ID, "item_notify")))
             statusFile = open(self.statusPath, 'w')
             statusFile.truncate()
             statusFile.write("Monitoring..")
@@ -174,31 +180,17 @@ class AsusMonitorThread(threading.Thread):
             self.productNotInStock = False
 
 
-
     def run(self):
+        phantom_service = PhantomJSDriverService.
 
-        options = {
-            'ignore_http_methods': ['GET', 'POST', 'HEAD', 'OPTIONS', 'PATCH', 'DELETE', 'CONNECT', 'TRACE'],
-            'ignore_https_methods': ['GET', 'POST', 'HEAD', 'OPTIONS', 'PATCH', 'DELETE', 'CONNECT', 'TRACE'],
-            'disable_encoding': True,
-            'verify_ssl': False,
-            'proxy': {
-                'https': self.proxyLink,
-            }
-        }
-        myChromeOptions = webdriver.ChromeOptions()
-        myChromeOptions.add_experimental_option("excludeSwitches", ['enable-automation']);
-        myChromeOptions.add_argument('--headless')
-        myChromeOptions.add_argument('--disable-gpu')
-        myChromeOptions.add_argument("--log-level=3")
-        capa = DesiredCapabilities.CHROME
-        capa["pageLoadStrategy"] = "eager"
-        driver = webdriver.Chrome(executable_path=resource_path("./driver/chromedriver.exe"),
-                            seleniumwire_options=options,
-                            options=myChromeOptions,
-                            desired_capabilities=capa)
-        driver.request_interceptor = interceptor
-        wait = WebDriverWait(driver, 10)
+        driver = webdriver.PhantomJS(executable_path=resource_path("./driver/phantomjs.exe"),
+                                    service_args=['--ignore-ssl-errors=true',
+                                        '--ssl-protocol=any',
+                                        '--proxy=' + self.proxyLink,
+                                        '--proxy-type=http',
+                                        '--proxy-auth={}:{}'.format(self.proxyUser, self.proxyPass)])
+
+        wait = WebDriverWait(driver, 15)
         notAsleep = True
         while notAsleep:
             AsusMonitorThread.checkStock(self, driver)
@@ -210,6 +202,7 @@ class AsusMonitorThread(threading.Thread):
                 statusFile.write("Product Back in Stock!")
                 statusFile.close()
                 #Grab Title
+                time.sleep(1.5)
                 wait.until(EC.presence_of_element_located((By.ID, "pro_title")))
                 productTitle = driver.find_element_by_id("pro_title")
                 titleText = productTitle.text
@@ -309,23 +302,33 @@ def window():
     win.layout().addWidget(footerWidget)
 
     #Create Title with background
-    titleWidget = QLabel()
-    titleWidget.move(500, 4)
-    titleWidget.setText("         7VN")
-    titleWidget.resize(350,70)
-    titleWidget.setStyleSheet("background-color: darkgrey;border: 2px solid purple;color: purple")
-    titleWidget.setFont(QFont('Corsiva', 30))
-    win.layout().addWidget(titleWidget)
+    # titleWidget = QLabel()
+    # titleWidget.move(500, 4)
+    # titleWidget.setText("         7VN")
+    # titleWidget.resize(350,70)
+    # titleWidget.setStyleSheet("background-color: darkgrey;border: 2px solid purple;color: purple")
+    # titleWidget.setFont(QFont('Corsiva', 30))
+    # win.layout().addWidget(titleWidget)
 
 
 
-    #Create page backgroun
-    pageBackground = QLabel()
-    pageBackground.move(10,80)
-    pageBackground.resize(1380,635)
-    pageBackground.setStyleSheet("background-color: darkgrey;border: 2px solid purple")
-    win.layout().addWidget(pageBackground)
-    # pageBackground.hide()
+
+    # #Create page backgroun
+    # pageBackground = QLabel()
+    # pageBackground.move(10,80)
+    # pageBackground.resize(1380,635)
+    # pageBackground.setStyleSheet("background-color: darkgrey;border: 2px solid purple")
+    # win.layout().addWidget(pageBackground)
+    # # pageBackground.hide()
+
+    colorBackground = QLabel()
+    colorBackground.move(0,40)
+    #colorBackground.resize(400,400)
+    pixelMap2 = QPixmap("icons/color-1.png")
+    colorBackground.setPixmap(pixelMap2)
+    colorBackground.resize(pixelMap2.width(), pixelMap2.height())
+    colorBackground.setStyleSheet("background-color: darkgrey;border: 2px solid purple;color: purple")
+    win.layout().addWidget(colorBackground)
 
     imageTest = QLabel()
     imageTest.move(100,100)
@@ -336,6 +339,14 @@ def window():
     imageTest.setStyleSheet("background-color: darkgrey;border: 2px solid purple;color: purple")
     win.layout().addWidget(imageTest)
 
+    titleImage = QLabel()
+    titleImage.move(565,10)
+    #colorBackground.resize(400,400)
+    pixelMap3 = QPixmap("icons/title2.png")
+    titleImage.setPixmap(pixelMap3)
+    titleImage.resize(pixelMap3.width(), pixelMap3.height())
+    titleImage.setStyleSheet("background-color: darkgrey;border: 2px solid purple;color: purple")
+    win.layout().addWidget(titleImage)
     #create buttons
     proxieButton = QPushButton()
     proxieButton.clicked.connect(lambda: showProxiePage(proxyFrame, taskFrame, profileFrame, settingsFrame))
@@ -545,8 +556,10 @@ def setUpProxyPage(layout):
 
     #Create blank widgets to make grid layout
     topLeftCorner = QLabel()
+    topLeftCorner.setStyleSheet("border: 2px solid black")
     layout.addWidget(topLeftCorner, 0, 0, 20, 1)
     bottomLeftCorner = QLabel()
+    bottomLeftCorner.setStyleSheet("border: 2px solid black")
     layout.addWidget(bottomLeftCorner, 20, 0, 1, 20)
 
 
@@ -639,10 +652,12 @@ def setUpTaskPage(layout):
     taskScrollable.setWidget(scrollContent)
 
     topLeftCorner = QLabel()
+    topLeftCorner.setStyleSheet("border: 2px solid black")
     layout.addWidget(topLeftCorner, 0, 0, 20, 1)
     # topRightCorner = QLabel()
     # layout.addWidget(topRightCorner, 0, 20, 20, 1)
     bottomLeftCorner = QLabel()
+    bottomLeftCorner.setStyleSheet("border: 2px solid black")
     layout.addWidget(bottomLeftCorner, 20, 0, 1, 20)
     # bottomRightCorner = QLabel()
     # layout.addWidget(bottomRightCorner, 22, 20, 1, 20)
@@ -867,10 +882,12 @@ def setUpProfilePage(layout):
     profileScrollable.setWidget(scrollContent)
 
     topLeftCorner = QLabel()
+    topLeftCorner.setStyleSheet("border: 2px solid black")
     layout.addWidget(topLeftCorner, 0, 0, 20, 1)
     # topRightCorner = QLabel()
     # layout.addWidget(topRightCorner, 0, 20, 20, 1)
     bottomLeftCorner = QLabel()
+    bottomLeftCorner.setStyleSheet("border: 2px solid black")
     layout.addWidget(bottomLeftCorner, 20, 0, 1, 20)
 
     #Create Frame for profile Creation
@@ -1345,10 +1362,11 @@ def setUpSettingsPage(layout):
     layout.addWidget(licenseKey, 4, 3, 1, 4)
 
     topLeftCorner = QLabel()
+    topLeftCorner.setStyleSheet("border: 2px solid black")
     layout.addWidget(topLeftCorner, 0, 0, 20, 1)
-    # topRightCorner = QLabel()
-    # layout.addWidget(topRightCorner, 0, 20, 20, 1)
+
     bottomLeftCorner = QLabel()
+    bottomLeftCorner.setStyleSheet("border: 2px solid black")
     layout.addWidget(bottomLeftCorner, 20, 0, 1, 20)
 
     #settingsData = loadSettingsData()
@@ -2100,6 +2118,8 @@ def launchTask(task):
     completeTaskDataPath = os.path.join(path, taskDataName)
     statusDataName= "status.txt"
     completeStatusDataPath = os.path.join(path, statusDataName)
+    commandsDataName = "commands.txt"
+    completeCommandsDataPath = os.path.join(path, commandsDataName)
     proxieString = "none"
     for proxie in serviceProxyList:
         if proxie.name == task.proxie and proxie.name != "Default List":
@@ -2108,11 +2128,11 @@ def launchTask(task):
             proxieParts = re.split('[:]', splitProxies[randomProxyNumber])
             #'https://foqfoa:xqgjrj@192.214.179.204:17102'
             #myProxy = "mvqrdn:oooztk@216.173.122.27:17102"
-            if len(proxieParts) > 2:
-                proxieString = ("https://" + proxieParts[2]+":"+proxieParts[3]+"@"+proxieParts[0]+":"+proxieParts[1])
+            proxieString = ("http://"+proxieParts[0]+":"+proxieParts[1])
+            proxyUser = proxieParts[2]
+            proxyPass = proxieParts[3]
             # 'https': 'https://192.168.10.100:8889',
-            if len(proxieParts) < 3:
-                proxieString = ("https://"+proxieParts[0]+":"+proxieParts[1])
+
             print(proxieString)
 
 
@@ -2126,6 +2146,9 @@ def launchTask(task):
     file1.close()
     file1 = open(completeStatusDataPath, 'w')
     file1.write("Initializing" +"\n")
+    file1.close()
+    file1 = open(completeCommandsDataPath, 'w')
+    file1.write("Running" +"\n")
     file1.close()
     profileDataName= "profile.txt"
     completeProfileDataPath = os.path.join(path, profileDataName)
@@ -2146,7 +2169,7 @@ def launchTask(task):
         #subprocess.Popen([sys.executable, 'gameNerdzTestFireFox.py', completeProfileDataPath, completeTaskDataPath])
     if task.site == "Asus":
         print("Launching Asus Task: "+ task.name + "!")
-        newThread = AsusMonitorThread(task.productLink, proxieString, completeStatusDataPath)
+        newThread = AsusMonitorThread(task.productLink, proxieString, proxyUser, proxyPass, completeStatusDataPath, completeCommandsDataPath)
         newThread.start()
         #thread = AsusMonitorThread(taskProfile, task, proxieString, statusPath)
         #subprocess.Popen([sys.executable, 'AsusTest.py', completeProfileDataPath, completeTaskDataPath, completeStatusDataPath])
