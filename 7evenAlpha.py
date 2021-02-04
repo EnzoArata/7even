@@ -71,9 +71,10 @@ class Profile():
         self.billingState =  billingState
 
 class Task():
-    def __init__(self, name, site, profile, account, proxie, productLink, quantity, directoryName, statusLabel):
+    def __init__(self, name, site, mode, profile, account, proxie, productLink, quantity, directoryName, statusLabel):
         self.name = name
         self.site = site
+        self.mode = mode
         self.profile = profile
         self.account = account
         self.proxie = proxie
@@ -110,6 +111,23 @@ serviceSiteList.append(site2)
 serviceSiteList.append(site3)
 serviceSiteList.append(site4)
 
+mode1 ="Monitor"
+mode2 ="Monitor & Buy"
+
+serviceGamenerdzModes =[]
+serviceWalmartModes =[]
+serviceBHPhotoModes =[]
+serviceAsusModes =[]
+serviceAsusModes.append(mode1)
+serviceAsusModes.append(mode2)
+serviceAsusModes.append("Expiremental")
+serviceWalmartModes.append(mode1)
+serviceWalmartModes.append(mode2)
+serviceBHPhotoModes.append(mode1)
+serviceBHPhotoModes.append(mode2)
+serviceGamenerdzModes.append(mode1)
+serviceGamenerdzModes.append(mode2)
+
 serviceAccountsWalmart = ""
 serviceAccountsBHPhoto = ""
 serviceAccountsGamenerdz = ""
@@ -117,7 +135,7 @@ serviceAccountsAsus = ""
 
 serviceTaskList = []
 
-defaultTask = Task("Default Task", site1, "Default Profile", "johndoe@gmail.com", "ISP", "bandH.com/3070ti", 1, "none", "none")
+defaultTask = Task("Default Task", site1, "Monitor", "Default Profile", "johndoe@gmail.com", "ISP", "bandH.com/3070ti", 1, "none", "none")
 #serviceTaskList.append(defaultTask)
 
 serviceHighlightedTask = defaultTask
@@ -722,18 +740,35 @@ def setUpTaskPage(layout):
     siteListComboBox = QComboBox()
     for sites in serviceSiteList:
         siteListComboBox.addItem(sites)
-    siteListComboBox.currentTextChanged.connect(lambda: updateTaskAccountSelection(siteListComboBox.currentText(), accountListComboBox ) )
+    siteListComboBox.currentTextChanged.connect(lambda: updateTaskAccountModeSelection(siteListComboBox.currentText(), accountListComboBox, modeListComboBox ) )
     #siteListComboBox.addItem("Game Nerdz")
     siteListComboBox.setFont(QFont('Corsiva', 20))
     siteListComboBox.setStyleSheet("color: black;border: 2px solid black;background-color: lightgrey")
     taskCreatorLayout.addWidget(siteListComboBox, 1, 5, 1, 5)
+
+    modeLabel = QLabel()
+    modeLabel.setText("Mode")
+    modeLabel.resize(100,50)
+    modeLabel.setFont(QFont('Corsiva', 22))
+    modeLabel.setStyleSheet("color: black;border: 2px solid black")
+    taskCreatorLayout.addWidget(modeLabel, 2, 1, 1, 3)
+
+    modeListComboBox = QComboBox()
+    for modes in serviceBHPhotoModes:
+        modeListComboBox.addItem(modes)
+    #modeListComboBox.addItem("Test Mode")
+    # modeListComboBox.currentTextChanged.connect(lambda: updateTaskModeSelection(modeListComboBox.currentText(), accountListComboBox ) )
+    #modeListComboBox.addItem("Game Nerdz")
+    modeListComboBox.setFont(QFont('Corsiva', 20))
+    modeListComboBox.setStyleSheet("color: black;border: 2px solid black;background-color: lightgrey")
+    taskCreatorLayout.addWidget(modeListComboBox, 2, 5, 1, 5)
 
     profileLabel = QLabel()
     profileLabel.setText("Profile")
     profileLabel.resize(100,50)
     profileLabel.setFont(QFont('Corsiva', 22))
     profileLabel.setStyleSheet("color: black;border: 2px solid black")
-    taskCreatorLayout.addWidget(profileLabel, 2, 1, 1, 3)
+    taskCreatorLayout.addWidget(profileLabel, 3, 1, 1, 3)
 
     profileListComboBox = QComboBox()
     for profile in serviceProfileList:
@@ -742,28 +777,28 @@ def setUpTaskPage(layout):
     #profileListComboBox.addItem("ENO-2")
     profileListComboBox.setFont(QFont('Corsiva', 20))
     profileListComboBox.setStyleSheet("color: black;border: 2px solid black;background-color: lightgrey")
-    taskCreatorLayout.addWidget(profileListComboBox, 2, 5, 1, 5)
+    taskCreatorLayout.addWidget(profileListComboBox, 3, 5, 1, 5)
 
     accountLabel = QLabel()
     accountLabel.setText("Account")
     accountLabel.resize(100,50)
     accountLabel.setFont(QFont('Corsiva', 22))
     accountLabel.setStyleSheet("color: black;border: 2px solid black")
-    taskCreatorLayout.addWidget(accountLabel, 3, 1, 1, 3)
+    taskCreatorLayout.addWidget(accountLabel, 4, 1, 1, 3)
 
     accountListComboBox = QComboBox()
     for account in serviceAccountsBHPhoto.splitlines():
         accountListComboBox.addItem(account)
     accountListComboBox.setFont(QFont('Corsiva', 20))
     accountListComboBox.setStyleSheet("color: black;border: 2px solid black;background-color: lightgrey")
-    taskCreatorLayout.addWidget(accountListComboBox, 3, 5, 1, 5)
+    taskCreatorLayout.addWidget(accountListComboBox, 4, 5, 1, 5)
 
     proxieLabel = QLabel()
     proxieLabel.setText("Proxie")
     proxieLabel.resize(100,50)
     proxieLabel.setFont(QFont('Corsiva', 22))
     proxieLabel.setStyleSheet("color: black;border: 2px solid black")
-    taskCreatorLayout.addWidget(proxieLabel, 4, 1, 1, 3)
+    taskCreatorLayout.addWidget(proxieLabel, 5, 1, 1, 3)
 
     proxieListComboBox = QComboBox()
     for proxie in serviceProxyList:
@@ -772,52 +807,54 @@ def setUpTaskPage(layout):
     #proxieListComboBox.addItem("LEAF-FTL")
     proxieListComboBox.setFont(QFont('Corsiva', 20))
     proxieListComboBox.setStyleSheet("color: black;border: 2px solid black;background-color: lightgrey")
-    taskCreatorLayout.addWidget(proxieListComboBox, 4, 5, 1, 5)
+    taskCreatorLayout.addWidget(proxieListComboBox, 5, 5, 1, 5)
+
+
 
     productLinkLabel = QLabel()
     productLinkLabel.setText("Product Link")
     productLinkLabel.setFont(QFont('Corsiva', 20))
     productLinkLabel.setStyleSheet("color: Black;")
-    taskCreatorLayout.addWidget(productLinkLabel, 5, 1, 1, 1)
+    taskCreatorLayout.addWidget(productLinkLabel, 6, 1, 1, 1)
 
     productLinkLineEdit = QLineEdit()
     productLinkLineEdit.setText("")
     productLinkLineEdit.setFixedWidth(480)
     productLinkLineEdit.setStyleSheet("color: black;background-color: lightgrey;border: 2px solid black")
     productLinkLineEdit.setFont(QFont('Corsiva', 12))
-    taskCreatorLayout.addWidget(productLinkLineEdit, 5, 2, 1, 2)
+    taskCreatorLayout.addWidget(productLinkLineEdit, 6, 2, 1, 2)
 
     quantityLabel = QLabel()
     quantityLabel.setText("Quantity")
     quantityLabel.setFont(QFont('Corsiva', 20))
     quantityLabel.setStyleSheet("color: Black;")
-    taskCreatorLayout.addWidget(quantityLabel, 6, 1, 1, 1)
+    taskCreatorLayout.addWidget(quantityLabel, 7, 1, 1, 1)
 
     quantityLineEdit = QLineEdit()
     quantityLineEdit.setText("")
     quantityLineEdit.setFixedWidth(20)
     quantityLineEdit.setStyleSheet("color: black;background-color: lightgrey;border: 2px solid black")
     quantityLineEdit.setFont(QFont('Corsiva', 12))
-    taskCreatorLayout.addWidget(quantityLineEdit, 6, 2, 1, 1)
+    taskCreatorLayout.addWidget(quantityLineEdit, 7, 2, 1, 1)
 
     taskNameLabel = QLabel()
     taskNameLabel.setText("Task Name")
     taskNameLabel.setFont(QFont('Corsiva', 20))
     taskNameLabel.setStyleSheet("color: Black;")
-    taskCreatorLayout.addWidget(taskNameLabel, 7, 1, 1, 1)
+    taskCreatorLayout.addWidget(taskNameLabel, 8, 1, 1, 1)
 
     taskNameLineEdit = QLineEdit()
     taskNameLineEdit.setText("")
     taskNameLineEdit.setFixedWidth(480)
     taskNameLineEdit.setStyleSheet("color: black;background-color: lightgrey;border: 2px solid black")
     taskNameLineEdit.setFont(QFont('Corsiva', 20))
-    taskCreatorLayout.addWidget(taskNameLineEdit, 7, 2, 1, 2)
+    taskCreatorLayout.addWidget(taskNameLineEdit, 8, 2, 1, 2)
 
     createNewTaskButton = QPushButton()
     createNewTaskButton.resize(100,40)
-    createNewTaskButton.clicked.connect(lambda: verifyTask(taskNameLineEdit.text(), siteListComboBox.currentText(), profileListComboBox.currentText(),
+    createNewTaskButton.clicked.connect(lambda: verifyTask(taskNameLineEdit.text(), siteListComboBox.currentText(), modeListComboBox.currentText(), profileListComboBox.currentText(),
                                         accountListComboBox.currentText(), proxieListComboBox.currentText(), productLinkLineEdit.text(), quantityLineEdit.text(),
-                                        scrollLayout, taskCreatorFrame, siteListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox,
+                                        scrollLayout, taskCreatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox,
                                         taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
                                         saveNewTaskButton, createNewTaskButton) )
     createNewTaskButton.setText(" Create New Task ")
@@ -827,9 +864,9 @@ def setUpTaskPage(layout):
 
     saveNewTaskButton = QPushButton()
     saveNewTaskButton.resize(100,40)
-    saveNewTaskButton.clicked.connect(lambda: saveTaskEdit(taskNameLineEdit.text(), siteListComboBox.currentText(), profileListComboBox.currentText(),
+    saveNewTaskButton.clicked.connect(lambda: saveTaskEdit(taskNameLineEdit.text(), siteListComboBox.currentText(), modeListComboBox.currentText(), profileListComboBox.currentText(),
                                         accountListComboBox.currentText(), proxieListComboBox.currentText(), productLinkLineEdit.text(), quantityLineEdit.text(),
-                                        scrollLayout, taskCreatorFrame, siteListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox,
+                                        scrollLayout, taskCreatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox,
                                         taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
                                         saveNewTaskButton, createNewTaskButton) )
     saveNewTaskButton.setText(" Save Task ")
@@ -850,7 +887,7 @@ def setUpTaskPage(layout):
     bottomLeftCorner = QLabel()
     taskCreatorLayout.addWidget(bottomLeftCorner, 20, 0, 1, 20)
 
-    loadTaskData(scrollLayout, taskCreatorFrame, siteListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
+    loadTaskData(scrollLayout, taskCreatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
                 saveNewTaskButton, createNewTaskButton)
 
     resetTaskTempData()
@@ -1422,7 +1459,7 @@ def setUpSettingsPage(layout):
     #accountListTextEditor.setText(serviceAccountsBHPhoto)
     #webhookInput.setText(settingsData)
 
-def createTask(task, layout, creatorFrame, siteListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
+def createTask(task, layout, creatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
                 saveTaskButton, createNewTaskButton):
     print("Creating Task")
 
@@ -1476,7 +1513,7 @@ def createTask(task, layout, creatorFrame, siteListComboBox, profileListComboBox
 
     editTaskButton = QPushButton()
     editTaskButton.setFixedWidth(75)
-    editTaskButton.clicked.connect(lambda: editTask(task, layout, creatorFrame, siteListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox,
+    editTaskButton.clicked.connect(lambda: editTask(task, layout, creatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox,
                                     taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
                                     saveTaskButton, createNewTaskButton) )
     editTaskButton.setText("Edit")
@@ -1682,7 +1719,7 @@ def saveTaskData():
     global serviceTaskList
     modifiedServiceTaskList = []
     for task in serviceTaskList:
-        tempTask = Task(task.name, task.site, task.profile, task.account, task.proxie, task.productLink, task.quantity, "none", "none")
+        tempTask = Task(task.name, task.site, task.mode, task.profile, task.account, task.proxie, task.productLink, task.quantity, "none", "none")
         modifiedServiceTaskList.append(tempTask)
     pickle_out = open("data/taskList.txt", "wb")
     pickle.dump(modifiedServiceTaskList, pickle_out)
@@ -1779,7 +1816,7 @@ def loadProxieData():
         serviceProxyList = pickle.load(pickle_in)
         return
 
-def loadTaskData(layout, creatorFrame, siteComboBox, profileComboBox, accountComboBox,proxieComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
+def loadTaskData(layout, creatorFrame, siteComboBox, modeListComboBox, profileComboBox, accountComboBox, proxieComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
                 saveTaskButton, createNewTaskButton):
     print("Loading Task Data")
     global serviceTaskList
@@ -1790,7 +1827,7 @@ def loadTaskData(layout, creatorFrame, siteComboBox, profileComboBox, accountCom
     for task in serviceTaskList:
         task.directoryName = "none"
         task.statusLabel = tempWidget
-        createTask(task, layout, creatorFrame, siteComboBox, profileComboBox, accountComboBox,proxieComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
+        createTask(task, layout, creatorFrame, siteComboBox, modeListComboBox, profileComboBox, accountComboBox,proxieComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
                     saveTaskButton, createNewTaskButton)
 
 
@@ -1844,8 +1881,8 @@ def verifyProfile(profileNameLineEdit, nameOnCardLineEdit, cardNumberLineEdit,
 
             profileCreatorFrame.hide()
 
-def verifyTask(taskName, siteName, profileName, account, proxie, productLink, quantity, layout,
-                creatorFrame, siteListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox,
+def verifyTask(taskName, siteName, mode, profileName, account, proxie, productLink, quantity, layout,
+                creatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox,
                 taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
                 saveTaskButton, createNewTaskButton):
     print("Validating Task Data....")
@@ -1855,8 +1892,8 @@ def verifyTask(taskName, siteName, profileName, account, proxie, productLink, qu
 
     print("Creating Task: " + taskName)
 
-    newTask = Task(taskName, siteName, profileName, account, proxie, productLink, quantity, "none", "none")
-    createTask(newTask, layout, creatorFrame, siteListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
+    newTask = Task(taskName, siteName, mode, profileName, account, proxie, productLink, quantity, "none", "none")
+    createTask(newTask, layout, creatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
             saveTaskButton, createNewTaskButton)
     serviceTaskList.append(newTask)
     saveTaskData()
@@ -1895,21 +1932,30 @@ def selectListComboBoxUpdate(value):
     blankProxie = Proxie(" "," ")
     return blankProxie
 
-def updateTaskAccountSelection(site, accountListComboBox ):
+def updateTaskAccountModeSelection(site, accountListComboBox, modeListComboBox ):
     print("Updating Account Selection")
     accountListComboBox.clear()
+    modeListComboBox.clear()
     if site == "B&H Photo":
         for account in serviceAccountsBHPhoto.splitlines():
             accountListComboBox.addItem(account)
+        for mode in serviceBHPhotoModes:
+            modeListComboBox.addItem(mode)
     if site == "Walmart":
         for account in serviceAccountsWalmart.splitlines():
             accountListComboBox.addItem(account)
+        for mode in serviceWalmartModes:
+            modeListComboBox.addItem(mode)
     if site == "Gamenerdz":
         for account in serviceAccountsGamenerdz.splitlines():
             accountListComboBox.addItem(account)
+        for mode in serviceGamenerdzModes:
+            modeListComboBox.addItem(mode)
     if site == "Asus":
         for account in serviceAccountsAsus.splitlines():
             accountListComboBox.addItem(account)
+        for mode in serviceAsusModes:
+            modeListComboBox.addItem(mode)
 
 def updateAccountsPage(accountListTextEditor, site):
     print("Updating Account page")
@@ -1971,7 +2017,7 @@ def deleteProfile(tempProfile, layout, profileNameLineEdit, nameOnCardLineEdit, 
                             billingCountryLineEdit, billingCityLineEdit, billingPostalLineEdit, billingStateLineEdit, profileScrollLayout, profileCreatorFrame,
                             saveNewProfileButton, saveProfileEditButton)
 
-def deleteTask(tempTask, layout, creatorFrame, siteListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
+def deleteTask(tempTask, layout, creatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
                 saveTaskButton, createNewTaskButton):
     print("Deleting Task!")
     global serviceTaskList
@@ -1983,7 +2029,7 @@ def deleteTask(tempTask, layout, creatorFrame, siteListComboBox, profileListComb
                 layout.itemAt(i).widget().setParent(None)
             saveTaskData()
             for item in serviceTaskList:
-                createTask(item, layout, creatorFrame, siteListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
+                createTask(item, layout, creatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
                             saveTaskButton, createNewTaskButton)
 
 def clearAllTasks(layout):
@@ -1994,7 +2040,7 @@ def clearAllTasks(layout):
         layout.itemAt(i).widget().setParent(None)
     saveTaskData()
 
-def editTask(task, layout, creatorFrame, siteListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
+def editTask(task, layout, creatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
             saveTaskButton, createNewTaskButton):
     createNewTaskButton.hide()
     saveTaskButton.show()
@@ -2002,6 +2048,7 @@ def editTask(task, layout, creatorFrame, siteListComboBox, profileListComboBox, 
     serviceHighlightedTask = task;
     print("Editing Task")
     global serviceProfileList
+    global serviceAsusModes
     creatorFrame.show()
     counter = 0
     for site in serviceSiteList:
@@ -2046,15 +2093,42 @@ def editTask(task, layout, creatorFrame, siteListComboBox, profileListComboBox, 
         if proxie.name == task.proxie:
             proxieListComboBox.setCurrentIndex(counter)
         counter = counter + 1
+    counter = 0
+    # modeListComboBox.clear()
+    if task.site == "B&H Photo":
+        for mode in serviceBHPhotoModes:
+
+            #modeListComboBox.addItem(mode)
+            if mode == task.mode:
+                modeListComboBox.setCurrentIndex(counter)
+            counter = counter + 1
+    if task.site == "Walmart":
+        for mode in serviceWalmartModes:
+            if mode == task.mode:
+                modeListComboBox.setCurrentIndex(counter)
+            counter = counter + 1
+    if task.site == "Gamenerdz":
+        for mode in serviceGamenerdzModes:
+            if mode == task.mode:
+                modeListComboBox.setCurrentIndex(counter)
+            counter = counter + 1
+    if task.site == "Asus":
+        for mode in serviceAsusModes:
+            #modeListComboBox.addItem(mode)
+
+            if mode == task.mode:
+                modeListComboBox.setCurrentIndex(counter)
+            counter = counter + 1
+
     taskNameLineEdit.setText(task.name)
     productLinkLineEdit.setText(task.productLink)
     quantityLineEdit.setText("1")
     if task.quantity != "":
         quantityLineEdit.setText(task.quantity)
 
-def saveTaskEdit(taskName, site, profile,
+def saveTaskEdit(taskName, site, mode, profile,
                 account, proxie, productLink, quantity,
-                layout, creatorFrame, siteListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox,
+                layout, creatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox,
                 taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
                 saveNewTaskButton, createNewTaskButton):
         print("Saving Edit")
@@ -2062,6 +2136,7 @@ def saveTaskEdit(taskName, site, profile,
         print("Edit for task "  + serviceHighlightedTask.name + " completed!")
         serviceHighlightedTask.name = taskName
         serviceHighlightedTask.site = site
+        serviceHighlightedTask.mode = mode
         serviceHighlightedTask.profile = profile
         serviceHighlightedTask.account = account
         serviceHighlightedTask.productLink = productLink
@@ -2071,7 +2146,7 @@ def saveTaskEdit(taskName, site, profile,
         for i in reversed(range(layout.count())):
             layout.itemAt(i).widget().setParent(None)
         for item in serviceTaskList:
-            createTask(item, layout, creatorFrame, siteListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
+            createTask(item, layout, creatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
                         saveNewTaskButton, createNewTaskButton)
         saveTaskData()
         creatorFrame.hide()
