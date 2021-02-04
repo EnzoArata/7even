@@ -161,6 +161,27 @@ class AsusMonitorThread(threading.Thread):
         self.statusPath = statusPath
         self.commandsPath = commandsPath
 
+    def checkCommands(self):
+            print("Checking Command..")
+            commandsFile = open(self.commandsPath)
+            command = commandsFile.readline()
+            stopTask = False
+            print("Command: " + command)
+            if command == "STOP":
+                stopTask = True
+                statusFile = open(self.statusPath, 'w')
+                statusFile.truncate()
+                statusFile.write("Stopped")
+                statusFile.close()
+            while stopTask == True:
+                commandsFile = open(self.commandsPath)
+                command = commandsFile.readline()
+                if command != "STOP":
+                    stopTask = False
+                    break
+                time.sleep(1)
+
+
     def checkStock(self, driver):
         wait = WebDriverWait(driver, 10)
 
@@ -172,7 +193,7 @@ class AsusMonitorThread(threading.Thread):
             arrivalNotice = wait.until(EC.element_to_be_clickable((By.ID, "item_notify")))
             statusFile = open(self.statusPath, 'w')
             statusFile.truncate()
-            statusFile.write("Monitoring..")
+            statusFile.write("Monitoring....")
             statusFile.close()
 
 
@@ -181,7 +202,7 @@ class AsusMonitorThread(threading.Thread):
 
 
     def run(self):
-        phantom_service = PhantomJSDriverService.
+        #phantom_service = PhantomJSDriverService.
 
         driver = webdriver.PhantomJS(executable_path=resource_path("./driver/phantomjs.exe"),
                                     service_args=['--ignore-ssl-errors=true',
@@ -219,10 +240,29 @@ class AsusMonitorThread(threading.Thread):
                 response = webhook.execute()
                 time.sleep(15)
                 self.productNotInStock = True
-            time.sleep(10)
+            self.checkCommands()
+            time.sleep(2)
             statusFile = open(self.statusPath, 'w')
             statusFile.truncate()
             statusFile.write("Monitoring...")
+            statusFile.close()
+            self.checkCommands()
+            time.sleep(2)
+            statusFile = open(self.statusPath, 'w')
+            statusFile.truncate()
+            statusFile.write("Monitoring..")
+            statusFile.close()
+            self.checkCommands()
+            time.sleep(2)
+            statusFile = open(self.statusPath, 'w')
+            statusFile.truncate()
+            statusFile.write("Monitoring.")
+            statusFile.close()
+            self.checkCommands()
+            time.sleep(2)
+            statusFile = open(self.statusPath, 'w')
+            statusFile.truncate()
+            statusFile.write("Monitoring..")
             statusFile.close()
 
 
@@ -1428,6 +1468,7 @@ def createTask(task, layout, creatorFrame, siteListComboBox, profileListComboBox
 
     stopTaskButton = QPushButton()
     stopTaskButton.setFixedWidth(75)
+    stopTaskButton.clicked.connect(lambda: pauseTask(task) )
     stopTaskButton.setText("Stop")
     stopTaskButton.setFont(QFont('Corsiva', 18))
     stopTaskButton.setStyleSheet("color: black;border: 2px solid darkgrey;background-color: white")
@@ -2108,74 +2149,98 @@ def saveProfileEdit(profileNameLineEdit, nameOnCardLineEdit, cardNumberLineEdit,
 
 def launchTask(task):
     global serviceProfileList
+    if task.directoryName == 'none':
+        parent_dir = "tempdata/"
+        unique_filename = str(uuid.uuid4())
+        path = os.path.join(parent_dir, unique_filename)
+        os.mkdir(path)
+        task.directoryName = path
+        taskDataName= "task.txt"
+        completeTaskDataPath = os.path.join(path, taskDataName)
+        statusDataName= "status.txt"
+        completeStatusDataPath = os.path.join(path, statusDataName)
+        commandsDataName = "commands.txt"
+        completeCommandsDataPath = os.path.join(path, commandsDataName)
+        proxieString = "none"
+        for proxie in serviceProxyList:
+            if proxie.name == task.proxie and proxie.name != "Default List":
+                splitProxies = proxie.list.splitlines()
+                randomProxyNumber = randrange(len(splitProxies))
+                proxieParts = re.split('[:]', splitProxies[randomProxyNumber])
+                #'https://foqfoa:xqgjrj@192.214.179.204:17102'
+                #myProxy = "mvqrdn:oooztk@216.173.122.27:17102"
+                proxieString = ("http://"+proxieParts[0]+":"+proxieParts[1])
+                proxyUser = proxieParts[2]
+                proxyPass = proxieParts[3]
+                # 'https': 'https://192.168.10.100:8889',
 
-    parent_dir = "tempdata/"
-    unique_filename = str(uuid.uuid4())
-    path = os.path.join(parent_dir, unique_filename)
-    os.mkdir(path)
-    task.directoryName = path
-    taskDataName= "task.txt"
-    completeTaskDataPath = os.path.join(path, taskDataName)
-    statusDataName= "status.txt"
-    completeStatusDataPath = os.path.join(path, statusDataName)
+                print(proxieString)
+
+
+        file1 = open(completeTaskDataPath, 'w')
+        file1.write(task.name +"\n")
+        file1.write(task.productLink+"\n")
+        file1.write(task.quantity+"\n")
+        file1.write(task.account+"\n")
+        file1.write(proxieString + "\n")
+        file1.write("Initializing" + "\n")
+        file1.close()
+        file1 = open(completeStatusDataPath, 'w')
+        file1.write("Initializing" +"\n")
+        file1.close()
+        file1 = open(completeCommandsDataPath, 'w')
+        file1.write("Running" +"\n")
+        file1.close()
+        profileDataName= "profile.txt"
+        completeProfileDataPath = os.path.join(path, profileDataName)
+        open(completeProfileDataPath, 'a').close()
+        for profile in serviceProfileList:
+            if profile.name == task.profile:
+                taskProfile = profile
+                pickle_out = open(completeProfileDataPath, "wb")
+                pickle.dump(taskProfile, pickle_out)
+                pickle_out.close()
+
+        if task.site == "B&H Photo":
+            print("Launching B&H Photo Task: "+ task.name + "!")
+            subprocess.Popen([sys.executable, 'BHphotoTest.py', completeProfileDataPath, completeTaskDataPath, completeStatusDataPath])
+        if task.site == "Gamenerdz":
+            print("Launching Gamenerdz Task: "+ task.name + "!")
+            subprocess.Popen([sys.executable, 'gameNerdzTest.py', completeProfileDataPath, completeTaskDataPath, completeStatusDataPath])
+            #subprocess.Popen([sys.executable, 'gameNerdzTestFireFox.py', completeProfileDataPath, completeTaskDataPath])
+        if task.site == "Asus":
+            print("Launching Asus Task: "+ task.name + "!")
+            newThread = AsusMonitorThread(task.productLink, proxieString, proxyUser, proxyPass, completeStatusDataPath, completeCommandsDataPath)
+            newThread.start()
+            #thread = AsusMonitorThread(taskProfile, task, proxieString, statusPath)
+            #subprocess.Popen([sys.executable, 'AsusTest.py', completeProfileDataPath, completeTaskDataPath, completeStatusDataPath])
+        if task.site == "Walmart":
+            print("Launching Walmart Task: "+ task.name + "!")
+        #serialize task data so it can be accesed by task
+    else :
+        commandsDataName = "commands.txt"
+        completeCommandsDataPath = os.path.join(task.directoryName, commandsDataName)
+        file1 = open(completeCommandsDataPath, 'w')
+        file1.write("START")
+        file1.close()
+        statusDataName= "status.txt"
+        completeStatusDataPath = os.path.join(task.directoryName, statusDataName)
+        file1 = open(completeStatusDataPath, 'w')
+        file1.write("Starting...")
+        file1.close()
+
+def pauseTask(task):
     commandsDataName = "commands.txt"
-    completeCommandsDataPath = os.path.join(path, commandsDataName)
-    proxieString = "none"
-    for proxie in serviceProxyList:
-        if proxie.name == task.proxie and proxie.name != "Default List":
-            splitProxies = proxie.list.splitlines()
-            randomProxyNumber = randrange(len(splitProxies))
-            proxieParts = re.split('[:]', splitProxies[randomProxyNumber])
-            #'https://foqfoa:xqgjrj@192.214.179.204:17102'
-            #myProxy = "mvqrdn:oooztk@216.173.122.27:17102"
-            proxieString = ("http://"+proxieParts[0]+":"+proxieParts[1])
-            proxyUser = proxieParts[2]
-            proxyPass = proxieParts[3]
-            # 'https': 'https://192.168.10.100:8889',
-
-            print(proxieString)
-
-
-    file1 = open(completeTaskDataPath, 'w')
-    file1.write(task.name +"\n")
-    file1.write(task.productLink+"\n")
-    file1.write(task.quantity+"\n")
-    file1.write(task.account+"\n")
-    file1.write(proxieString + "\n")
-    file1.write("Initializing" + "\n")
-    file1.close()
-    file1 = open(completeStatusDataPath, 'w')
-    file1.write("Initializing" +"\n")
-    file1.close()
+    completeCommandsDataPath = os.path.join(task.directoryName, commandsDataName)
     file1 = open(completeCommandsDataPath, 'w')
-    file1.write("Running" +"\n")
+    file1.write("STOP")
     file1.close()
-    profileDataName= "profile.txt"
-    completeProfileDataPath = os.path.join(path, profileDataName)
-    open(completeProfileDataPath, 'a').close()
-    for profile in serviceProfileList:
-        if profile.name == task.profile:
-            taskProfile = profile
-            pickle_out = open(completeProfileDataPath, "wb")
-            pickle.dump(taskProfile, pickle_out)
-            pickle_out.close()
 
-    if task.site == "B&H Photo":
-        print("Launching B&H Photo Task: "+ task.name + "!")
-        subprocess.Popen([sys.executable, 'BHphotoTest.py', completeProfileDataPath, completeTaskDataPath, completeStatusDataPath])
-    if task.site == "Gamenerdz":
-        print("Launching Gamenerdz Task: "+ task.name + "!")
-        subprocess.Popen([sys.executable, 'gameNerdzTest.py', completeProfileDataPath, completeTaskDataPath, completeStatusDataPath])
-        #subprocess.Popen([sys.executable, 'gameNerdzTestFireFox.py', completeProfileDataPath, completeTaskDataPath])
-    if task.site == "Asus":
-        print("Launching Asus Task: "+ task.name + "!")
-        newThread = AsusMonitorThread(task.productLink, proxieString, proxyUser, proxyPass, completeStatusDataPath, completeCommandsDataPath)
-        newThread.start()
-        #thread = AsusMonitorThread(taskProfile, task, proxieString, statusPath)
-        #subprocess.Popen([sys.executable, 'AsusTest.py', completeProfileDataPath, completeTaskDataPath, completeStatusDataPath])
-    if task.site == "Walmart":
-        print("Launching Walmart Task: "+ task.name + "!")
-    #serialize task data so it can be accesed by task
+    statusDataName= "status.txt"
+    completeStatusDataPath = os.path.join(task.directoryName, statusDataName)
+    file1 = open(completeStatusDataPath, 'w')
+    file1.write("Stopping Task...")
+    file1.close()
 
 def resetTaskTempData():
     import os, shutil
