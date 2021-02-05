@@ -451,7 +451,7 @@ def window():
     proxyLayout = QtWidgets.QGridLayout()
     proxyLayout.columnStretch(10)
     proxyFrame.setLayout(proxyLayout)
-    proxyFrame.setStyleSheet("background-color: lightblack;border: 2px solid purple")
+    proxyFrame.setStyleSheet("background-color: lightblack;border: 2px solid green")
     setUpProxyPage(proxyLayout)
 
     settingsFrame =  QtWidgets.QFrame()
@@ -460,7 +460,7 @@ def window():
     settingsLayout = QtWidgets.QGridLayout()
     #settingsLayout.columnStretch(10)
     settingsFrame.setLayout(settingsLayout)
-    settingsFrame.setStyleSheet("background-color: lightblack;border: 2px solid purple")
+    settingsFrame.setStyleSheet("background-color: lightblack;border: 2px solid green")
     setUpSettingsPage(settingsLayout)
 
     taskFrame =  QtWidgets.QFrame()
@@ -469,7 +469,7 @@ def window():
     taskLayout = QtWidgets.QGridLayout()
     taskLayout.columnStretch(10)
     taskFrame.setLayout(taskLayout)
-    taskFrame.setStyleSheet("background-color: lightblack;border: 2px solid purple")
+    taskFrame.setStyleSheet("background-color: lightblack;border: 2px solid green")
     setUpTaskPage(taskLayout)
 
     profileFrame =  QtWidgets.QFrame()
@@ -478,7 +478,7 @@ def window():
     profileLayout = QtWidgets.QGridLayout()
     #profileFrame.columnStretch(10)
     profileFrame.setLayout(profileLayout)
-    profileFrame.setStyleSheet("background-color: lightblack;border: 2px solid purple")
+    profileFrame.setStyleSheet("background-color: lightblack;border: 2px solid green")
     setUpProfilePage(profileLayout)
 
 
@@ -548,7 +548,7 @@ def setUpProxyPage(layout):
     proxyName = QLineEdit()
     proxyName.setText("Default List")
     proxyName.resize(100,50)
-    proxyName.setStyleSheet("color: white;border: 2px solid black;background-color: lightgrey")
+    proxyName.setStyleSheet("color: black;border: 2px solid purple;background-color: lightgrey")
     proxyName.setFont(QFont('Corsiva', 22))
     #proxyFrame.addWidget(proxyTitle)
     layout.addWidget(proxyName, 0, 3, 1, 1)
@@ -558,7 +558,7 @@ def setUpProxyPage(layout):
     saveProxiesButton.clicked.connect(lambda: saveProxieList(proxyName.text(), proxyListTextEditor.toPlainText(), selectListComboBox ) )
     saveProxiesButton.setText("Save Proxies")
     saveProxiesButton.setFont(QFont('Corsiva', 18))
-    saveProxiesButton.setStyleSheet("color: white;border: 2px solid black;background-color: grey")
+    saveProxiesButton.setStyleSheet("color: white;border: 2px solid purple;background-color: grey")
     layout.addWidget(saveProxiesButton, 18, 1, 1, 1)
 
     clearListButton = QPushButton()
@@ -566,11 +566,11 @@ def setUpProxyPage(layout):
     clearListButton.clicked.connect(lambda: clearProxieList(proxyListTextEditor))
     clearListButton.setText("Clear List")
     clearListButton.setFont(QFont('Corsiva', 18))
-    clearListButton.setStyleSheet("color: white;border: 2px solid black;background-color: grey")
+    clearListButton.setStyleSheet("color: white;border: 2px solid purple;background-color: grey")
     layout.addWidget(clearListButton, 18, 2, 1, 1)
 
     proxyListTextEditor = QPlainTextEdit()
-    proxyListTextEditor.setStyleSheet("color: white;border: 2px solid black;background-color: grey")
+    proxyListTextEditor.setStyleSheet("color: black;border: 3px solid darkgreen;background-color: darkgrey")
     proxyListTextEditor.resize(300,400)
     layout.addWidget(proxyListTextEditor, 1, 1, 15, 6)
 
@@ -580,7 +580,7 @@ def setUpProxyPage(layout):
     # selectListComboBox.addItem("Oculus DC")
     # selectListComboBox.addItem("LEAF Footlocker")
     # selectListComboBox.addItem("Cookie DC")
-    selectListComboBox.setStyleSheet("color: white;border: 2px solid black;background-color: grey")
+    selectListComboBox.setStyleSheet("color: white;border: 2px solid purple;background-color: grey")
     layout.addWidget(selectListComboBox, 1, 11, 1, 5)
 
     selectListComboBoxLabel = QLabel("Select List")
@@ -600,7 +600,7 @@ def setUpProxyPage(layout):
     deleteListButton.clicked.connect(lambda: deleteProxieList(proxyName.text(),selectListComboBox)  )
     deleteListButton.setText("Delete List")
     deleteListButton.setFont(QFont('Corsiva', 18))
-    deleteListButton.setStyleSheet("color: white;border: 2px solid darkgrey;background-color: grey;border-radius: 50")
+    deleteListButton.setStyleSheet("color: white;border: 2px solid purple;background-color: grey;border-radius: 50")
     layout.addWidget(deleteListButton, 5, 13, 1, 1)
 
     newListButton = QPushButton()
@@ -608,7 +608,7 @@ def setUpProxyPage(layout):
     newListButton.clicked.connect(lambda: newProxieList(proxyName.text(), proxyListTextEditor.toPlainText(), selectListComboBox)  )
     newListButton.setText("Create New List")
     newListButton.setFont(QFont('Corsiva', 18))
-    newListButton.setStyleSheet("color: white;border: 2px solid darkgrey;background-color: grey;border-radius: 50")
+    newListButton.setStyleSheet("color: white;border: 2px solid purple;background-color: grey;border-radius: 50")
     layout.addWidget(newListButton, 7, 13, 1, 1)
 
 
@@ -652,21 +652,21 @@ def setUpTaskPage(layout):
                                     saveNewTaskButton, createNewTaskButton) )
     newTaskButton.setText("New Task")
     newTaskButton.setFont(QFont('Corsiva', 18))
-    newTaskButton.setStyleSheet("color: white;border: 2px solid darkgrey;background-color: grey")
+    newTaskButton.setStyleSheet("color: white;border: 2px solid purple;background-color: grey")
     layout.addWidget(newTaskButton, 19, 4, 1, 2)
 
     editAllButton = QPushButton()
     editAllButton.resize(100,40)
     editAllButton.setText("Edit All")
     editAllButton.setFont(QFont('Corsiva', 18))
-    editAllButton.setStyleSheet("color: white;border: 2px solid darkgrey;background-color: grey")
+    editAllButton.setStyleSheet("color: white;border: 2px solid purple;background-color: grey")
     layout.addWidget(editAllButton, 19, 9, 1, 2)
 
     clearAllButton = QPushButton()
     clearAllButton.clicked.connect(lambda: clearAllTasks(scrollLayout) )
     clearAllButton.setText("Clear All")
     clearAllButton.setFont(QFont('Corsiva', 18))
-    clearAllButton.setStyleSheet("color: white;border: 2px solid darkgrey;background-color: grey")
+    clearAllButton.setStyleSheet("color: white;border: 2px solid purple;background-color: grey")
     layout.addWidget(clearAllButton, 19, 14, 1, 2)
 
     #Set Titles for Task layout
@@ -700,7 +700,7 @@ def setUpTaskPage(layout):
 
     #add scrollable task page
     taskScrollable = QScrollArea()
-    taskScrollable.setStyleSheet("color: white;border: 2px solid white;background-color: lightgrey")
+    taskScrollable.setStyleSheet("color: white;border: 2px solid green;background-color: lightpurple")
     layout.addWidget(taskScrollable, 2, 1, 14, 18)
     taskScrollable.setWidgetResizable(True)
     scrollContent = QWidget(taskScrollable)
@@ -708,6 +708,7 @@ def setUpTaskPage(layout):
     scrollContent.setLayout(scrollLayout)
 
     taskScrollable.setWidget(scrollContent)
+    taskScrollable.setStyleSheet("border: 2px solid purple")
 
     topLeftCorner = QLabel()
     topLeftCorner.setStyleSheet("border: 2px solid black")
@@ -922,7 +923,7 @@ def setUpProfilePage(layout):
                                         billingCountryLineEdit, billingCityLineEdit, billingPostalLineEdit, billingStateLineEdit) )
     createProfileButton.setText("CreateProfile")
     createProfileButton.setFont(QFont('Corsiva', 18))
-    createProfileButton.setStyleSheet("color: white;border: 2px solid darkgrey;background-color: grey")
+    createProfileButton.setStyleSheet("color: white;border: 2px solid purple;background-color: grey")
     layout.addWidget(createProfileButton, 19, 8, 1, 2)
 
     #Set Titles for Profile Layout
@@ -951,7 +952,7 @@ def setUpProfilePage(layout):
     profileScrollable = QScrollArea()
     layout.addWidget(profileScrollable, 3, 2, 12, 16)
     profileScrollable.setWidgetResizable(True)
-    profileScrollable.setStyleSheet("color: white;border: 2px solid white;background-color: lightgrey")
+    profileScrollable.setStyleSheet("color: black;border: 2px solid purple;background-color: darkgrey")
     scrollContent = QWidget(profileScrollable)
     profileScrollLayout = QVBoxLayout(scrollContent)
     scrollContent.setLayout(profileScrollLayout)
@@ -1381,18 +1382,18 @@ def setUpSettingsPage(layout):
         siteListComboBox.addItem(sites)
     siteListComboBox.currentTextChanged.connect(lambda: updateAccountsPage(accountListTextEditor, siteListComboBox.currentText()  ) )
     siteListComboBox.setFont(QFont('Corsiva', 20))
-    siteListComboBox.setStyleSheet("color: black;border: 2px solid black;background-color: lightgrey")
+    siteListComboBox.setStyleSheet("color: black;border: 2px solid purple;background-color: darkgrey")
     layout.addWidget(siteListComboBox, 2, 12, 1, 4)
 
     accountListTextEditor = QPlainTextEdit()
-    accountListTextEditor.setStyleSheet("color: black;border: 2px solid grey;background-color: white")
+    accountListTextEditor.setStyleSheet("color: black;border: 2px solid purple;background-color: darkgrey")
     layout.addWidget(accountListTextEditor, 3, 12, 8, 4)
 
     saveAccountListButton = QPushButton()
     saveAccountListButton.clicked.connect(lambda: saveAccountList(accountListTextEditor, siteListComboBox.currentText()) )
     saveAccountListButton.setText("Save Account List")
     saveAccountListButton.setFont(QFont('Corsiva', 18))
-    saveAccountListButton.setStyleSheet("color: white;border: 2px solid darkgrey;background-color: grey")
+    saveAccountListButton.setStyleSheet("color: black;border: 2px solid purple;background-color: grey")
     layout.addWidget(saveAccountListButton, 12, 12, 1, 4)
 
     webhookLabel = QLabel()
@@ -1403,7 +1404,7 @@ def setUpSettingsPage(layout):
     layout.addWidget(webhookLabel, 2, 2, 1, 1)
 
     webhookInput = QLineEdit()
-    webhookInput.setStyleSheet("color: white;border: 2px solid black;background-color: grey")
+    webhookInput.setStyleSheet("color: black;border: 2px solid purple;background-color: lightgrey")
     layout.addWidget(webhookInput, 2, 3, 1, 4)
 
     webhookSave = QPushButton()
@@ -1411,7 +1412,7 @@ def setUpSettingsPage(layout):
     webhookSave.clicked.connect(lambda: saveWebhook(webhookInput.text()))
     webhookSave.setText("Save")
     webhookSave.setFont(QFont('Corsiva', 18))
-    webhookSave.setStyleSheet("color: white;border: 2px solid darkgrey;background-color: grey")
+    webhookSave.setStyleSheet("color: black;border: 2px solid purple;background-color: lightgrey")
     layout.addWidget(webhookSave, 2, 7, 1, 1)
 
     webhookTest = QPushButton()
@@ -1419,7 +1420,7 @@ def setUpSettingsPage(layout):
     webhookTest.clicked.connect(lambda: testWebhook(webhookInput.text()))
     webhookTest.setText("Test")
     webhookTest.setFont(QFont('Corsiva', 18))
-    webhookTest.setStyleSheet("color: white;border: 2px solid darkgrey;background-color: grey")
+    webhookTest.setStyleSheet("color: black;border: 2px solid purple;background-color: lightgrey")
     layout.addWidget(webhookTest, 2, 8, 1, 1)
 
 
@@ -1466,30 +1467,31 @@ def createTask(task, layout, creatorFrame, siteListComboBox, modeListComboBox, p
     #Test creating grid layout for tasks
     taskLayout = QtWidgets.QGridLayout()
 
+    #taskLayout.setStyleSheet("border: 2px solid purple")
     taskName = QLabel()
     taskName.setFixedWidth(225)
-    taskName.setStyleSheet("color: black")
+    taskName.setStyleSheet("color: black; border: 2px solid black")
     taskName.setText(task.name)
     taskName.setFont(QFont('Corsiva', 18))
     taskLayout.addWidget(taskName, 0, 0, 1, 1)
 
     taskProxie = QLabel()
     taskProxie.setFixedWidth(200)
-    taskProxie.setStyleSheet("color: black")
+    taskProxie.setStyleSheet("color: black;border: 2px solid black")
     taskProxie.setText(task.proxie)
     taskProxie.setFont(QFont('Corsiva', 18))
     taskLayout.addWidget(taskProxie, 0, 2, 1, 1)
 
     taskProfile = QLabel()
     taskProfile.setFixedWidth(200)
-    taskProfile.setStyleSheet("color: black")
+    taskProfile.setStyleSheet("color: black;border: 2px solid black")
     taskProfile.setText(task.profile)
     taskProfile.setFont(QFont('Corsiva', 18))
     taskLayout.addWidget(taskProfile, 0, 4, 1, 1)
 
     taskStatusLabel = QLabel()
     taskStatusLabel.setFixedWidth(200)
-    taskStatusLabel.setStyleSheet("color: black")
+    taskStatusLabel.setStyleSheet("color: black;border: 2px solid black")
     taskStatusLabel.setText("Not Active")
     taskStatusLabel.setFont(QFont('Corsiva', 18))
     taskLayout.addWidget(taskStatusLabel, 0, 5, 1, 1)
@@ -1500,7 +1502,7 @@ def createTask(task, layout, creatorFrame, siteListComboBox, modeListComboBox, p
     startTaskButton.clicked.connect(lambda: launchTask(task) )
     startTaskButton.setFixedWidth(75)
     startTaskButton.setFont(QFont('Corsiva', 18))
-    startTaskButton.setStyleSheet("color: black;border: 2px solid darkgrey;background-color: white")
+    startTaskButton.setStyleSheet("color: black;border: 2px solid black;background-color: white")
     taskLayout.addWidget(startTaskButton, 0, 6, 1, 1)
 
     stopTaskButton = QPushButton()
@@ -1508,7 +1510,7 @@ def createTask(task, layout, creatorFrame, siteListComboBox, modeListComboBox, p
     stopTaskButton.clicked.connect(lambda: pauseTask(task) )
     stopTaskButton.setText("Stop")
     stopTaskButton.setFont(QFont('Corsiva', 18))
-    stopTaskButton.setStyleSheet("color: black;border: 2px solid darkgrey;background-color: white")
+    stopTaskButton.setStyleSheet("color: black;border: 2px solid black;background-color: white")
     taskLayout.addWidget(stopTaskButton, 0, 7, 1, 1)
 
     editTaskButton = QPushButton()
@@ -1518,7 +1520,7 @@ def createTask(task, layout, creatorFrame, siteListComboBox, modeListComboBox, p
                                     saveTaskButton, createNewTaskButton) )
     editTaskButton.setText("Edit")
     editTaskButton.setFont(QFont('Corsiva', 18))
-    editTaskButton.setStyleSheet("color: black;border: 2px solid darkgrey;background-color: white")
+    editTaskButton.setStyleSheet("color: black;border: 2px solid black;background-color: white")
     taskLayout.addWidget(editTaskButton, 0, 8, 1, 1)
 
     deleteTaskButton = QPushButton()
@@ -1528,14 +1530,14 @@ def createTask(task, layout, creatorFrame, siteListComboBox, modeListComboBox, p
                                         saveTaskButton, createNewTaskButton) )
     deleteTaskButton.setText("Delete")
     deleteTaskButton.setFont(QFont('Corsiva', 18))
-    deleteTaskButton.setStyleSheet("color: black;border: 2px solid darkgrey;background-color: white")
+    deleteTaskButton.setStyleSheet("color: black;border: 2px solid black;background-color: white")
     taskLayout.addWidget(deleteTaskButton, 0, 9, 1, 1)
 
 
 
     blankWidget = QWidget()
     blankWidget.setLayout(taskLayout)
-    blankWidget.setStyleSheet("background-color: grey")
+    blankWidget.setStyleSheet("background-color: darkgrey; border: 2px solid purple")
 
     layout.addWidget(blankWidget)
 
@@ -1620,7 +1622,7 @@ def createProfile(tempProfile, layout, profileNameLineEdit, nameOnCardLineEdit, 
 
     blankWidget = QWidget()
     blankWidget.setLayout(profileLayout)
-    blankWidget.setStyleSheet("background-color: grey")
+    blankWidget.setStyleSheet("background-color: grey;border: 2px solid black")
 
     layout.addWidget(blankWidget)
     saveProfileData()
