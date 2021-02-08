@@ -359,25 +359,6 @@ def window():
     footerWidget.resize(1400,75)
     win.layout().addWidget(footerWidget)
 
-    #Create Title with background
-    # titleWidget = QLabel()
-    # titleWidget.move(500, 4)
-    # titleWidget.setText("         7VN")
-    # titleWidget.resize(350,70)
-    # titleWidget.setStyleSheet("background-color: darkgrey;border: 2px solid purple;color: purple")
-    # titleWidget.setFont(QFont('Corsiva', 30))
-    # win.layout().addWidget(titleWidget)
-
-
-
-
-    # #Create page backgroun
-    # pageBackground = QLabel()
-    # pageBackground.move(10,80)
-    # pageBackground.resize(1380,635)
-    # pageBackground.setStyleSheet("background-color: darkgrey;border: 2px solid purple")
-    # win.layout().addWidget(pageBackground)
-    # # pageBackground.hide()
 
     colorBackground = QLabel()
     colorBackground.move(0,40)
@@ -1472,7 +1453,7 @@ def createTask(task, layout, creatorFrame, siteListComboBox, modeListComboBox, p
     taskName.setFixedWidth(225)
     taskName.setStyleSheet("color: black; border: 2px solid black")
     taskName.setText(task.name)
-    taskName.setFont(QFont('Corsiva', 18))
+    taskName.setFont(QFont('Corsiva', 14))
     taskLayout.addWidget(taskName, 0, 0, 1, 1)
 
     taskProxie = QLabel()
@@ -1493,7 +1474,7 @@ def createTask(task, layout, creatorFrame, siteListComboBox, modeListComboBox, p
     taskStatusLabel.setFixedWidth(200)
     taskStatusLabel.setStyleSheet("color: black;border: 2px solid black")
     taskStatusLabel.setText("Not Active")
-    taskStatusLabel.setFont(QFont('Corsiva', 18))
+    taskStatusLabel.setFont(QFont('Corsiva', 14))
     taskLayout.addWidget(taskStatusLabel, 0, 5, 1, 1)
     task.statusLabel = taskStatusLabel
 
@@ -2096,31 +2077,33 @@ def editTask(task, layout, creatorFrame, siteListComboBox, modeListComboBox, pro
             proxieListComboBox.setCurrentIndex(counter)
         counter = counter + 1
     counter = 0
-    # modeListComboBox.clear()
-    if task.site == "B&H Photo":
-        for mode in serviceBHPhotoModes:
-
-            #modeListComboBox.addItem(mode)
-            if mode == task.mode:
-                modeListComboBox.setCurrentIndex(counter)
-            counter = counter + 1
-    if task.site == "Walmart":
-        for mode in serviceWalmartModes:
-            if mode == task.mode:
-                modeListComboBox.setCurrentIndex(counter)
-            counter = counter + 1
-    if task.site == "Gamenerdz":
-        for mode in serviceGamenerdzModes:
-            if mode == task.mode:
-                modeListComboBox.setCurrentIndex(counter)
-            counter = counter + 1
-    if task.site == "Asus":
-        for mode in serviceAsusModes:
-            #modeListComboBox.addItem(mode)
-
-            if mode == task.mode:
-                modeListComboBox.setCurrentIndex(counter)
-            counter = counter + 1
+    modeListComboBox.clear()
+    modeListComboBox.addItem(task.mode)
+    modeListComboBox.setCurrentIndex(0)
+    # if task.site == "B&H Photo":
+    #     for mode in serviceBHPhotoModes:
+    #
+    #         #modeListComboBox.addItem(mode)
+    #         if mode == task.mode:
+    #             modeListComboBox.setCurrentIndex(counter)
+    #         counter = counter + 1
+    # if task.site == "Walmart":
+    #     for mode in serviceWalmartModes:
+    #         if mode == task.mode:
+    #             modeListComboBox.setCurrentIndex(counter)
+    #         counter = counter + 1
+    # if task.site == "Gamenerdz":
+    #     for mode in serviceGamenerdzModes:
+    #         if mode == task.mode:
+    #             modeListComboBox.setCurrentIndex(counter)
+    #         counter = counter + 1
+    # if task.site == "Asus":
+    #     for mode in serviceAsusModes:
+    #         #modeListComboBox.addItem(mode)
+    #
+    #         if mode == task.mode:
+    #             modeListComboBox.setCurrentIndex(counter)
+    #         counter = counter + 1
 
     taskNameLineEdit.setText(task.name)
     productLinkLineEdit.setText(task.productLink)
@@ -2288,6 +2271,7 @@ def launchTask(task):
         if task.site == "Asus":
             print("Launching Asus Task: "+ task.name + "!")
             newThread = AsusMonitorThread(task.productLink, proxieString, proxyUser, proxyPass, completeStatusDataPath, completeCommandsDataPath)
+            newThread.setDaemon(True)
             newThread.start()
             #thread = AsusMonitorThread(taskProfile, task, proxieString, statusPath)
             #subprocess.Popen([sys.executable, 'AsusTest.py', completeProfileDataPath, completeTaskDataPath, completeStatusDataPath])
@@ -2337,5 +2321,6 @@ print("starting window")
 #updateThread = threading.Thread(target=threadGetTaskInfo())
 #updateThread.start()
 thread = updaterThread()
+thread.setDaemon(True)
 thread.start()
 window()
