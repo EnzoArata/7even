@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from discord_webhook import DiscordWebhook, DiscordEmbed
 from selenium.webdriver.common.proxy import Proxy, ProxyType
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.chrome.options import Options
@@ -105,33 +106,41 @@ site1 = "B&H Photo"
 site2 = "Walmart"
 site3 = "Gamenerdz"
 site4 = "Asus"
+site5 = "Target"
 serviceSiteList = []
 serviceSiteList.append(site1)
 serviceSiteList.append(site2)
 serviceSiteList.append(site3)
 serviceSiteList.append(site4)
+serviceSiteList.append(site5)
 
 mode1 ="Monitor"
 mode2 ="Monitor & Buy"
+
+serviceWebhook = ""
 
 serviceGamenerdzModes =[]
 serviceWalmartModes =[]
 serviceBHPhotoModes =[]
 serviceAsusModes =[]
+serviceTargetModes = []
 serviceAsusModes.append(mode1)
-serviceAsusModes.append(mode2)
-serviceAsusModes.append("Expiremental")
+
+serviceAsusModes.append("Experimental")
 serviceWalmartModes.append(mode1)
-serviceWalmartModes.append(mode2)
+
 serviceBHPhotoModes.append(mode1)
-serviceBHPhotoModes.append(mode2)
+
 serviceGamenerdzModes.append(mode1)
-serviceGamenerdzModes.append(mode2)
+
+serviceTargetModes.append(mode1)
+
 
 serviceAccountsWalmart = ""
 serviceAccountsBHPhoto = ""
 serviceAccountsGamenerdz = ""
 serviceAccountsAsus = ""
+serviceAccountsTarget = ""
 
 serviceTaskList = []
 
@@ -220,8 +229,6 @@ class AsusMonitorThread(threading.Thread):
 
 
     def run(self):
-        #phantom_service = PhantomJSDriverService.
-
         driver = webdriver.PhantomJS(executable_path=resource_path("./driver/phantomjs.exe"),
                                     service_args=['--ignore-ssl-errors=true',
                                         '--ssl-protocol=any',
@@ -283,7 +290,302 @@ class AsusMonitorThread(threading.Thread):
             statusFile.write("Monitoring..")
             statusFile.close()
 
+class AsusExperimentalThread(threading.Thread):
+    productInCart = False
+    inCheckout = False
+    loggedIn = False
+    cartLink = "https://shop-us1.asus.com/AW000706/cart"
+    checkoutLink = "https://shop-us1.asus.com/AW000706/checkout"
+    loginLink = "https://account.asus.com/loginform.aspx?skey=1717b1871a7c4981a61a248a97b849ba"
+    webhookImage = "blank"
+    webhookTitle = "blank"
+    webhookLink = "https://discord.com/api/webhooks/803304991028281370/2oznki3M59Cb22A6GCE3hO1aBBCesysCnAR6Uh5SJwTazPO-O_gD7C3rDTlNOXxqT3ET"
 
+    def __init__(self, task, profile, proxyLink, proxyUser, proxyPass, statusPath, commandsPath):
+        threading.Thread.__init__(self)
+        self.task = task
+        self.profile = profile
+        self.proxyLink = proxyLink
+        self.proxyUser = proxyUser
+        self.proxyPass = proxyPass
+        self.statusPath = statusPath
+        self.commandsPath = commandsPath
+
+    def checkCommands(self):
+            print("Checking Command..")
+            commandsFile = open(self.commandsPath)
+            command = commandsFile.readline()
+            stopTask = False
+            print("Command: " + command)
+            if command == "STOP":
+                stopTask = True
+                statusFile = open(self.statusPath, 'w')
+                statusFile.truncate()
+                statusFile.write("Stopped")
+                statusFile.close()
+            while stopTask == True:
+                commandsFile = open(self.commandsPath)
+                command = commandsFile.readline()
+                if command != "STOP":
+                    stopTask = False
+                    break
+                time.sleep(1)
+
+    def login(self, driver):
+        print("Logging in...")
+        statusFile = open(self.statusPath, 'w')
+        statusFile.truncate()
+        statusFile.write("Logging in...")
+        statusFile.close()
+        driver.get(self.loginLink)
+        accountInfo = re.split('[:]', self.task.account)
+        accountEmail = accountInfo[0]
+        accountPassword = accountInfo[1]
+
+        try:
+            emailInput = driver.find_element_by_id("Front_txtAccountID")
+            emailInput.send_keys(accountEmail)
+            passwordInput = driver.find_element_by_id("Front_txtPassword")
+            passwordInput.send_keys(accountPassword + Keys.ENTER)
+            self.loggedIn = True
+        except:
+            print("Login Failed")
+            statusFile = open(self.statusPath, 'w')
+            statusFile.truncate()
+            statusFile.write("Login Failed")
+            statusFile.close()
+
+    def addToCart(self, driver):
+        wait = WebDriverWait(driver, 10)
+        driver.get(self.task.productLink)
+        driver.get_screenshot_as_file("screenshots/productPageLoaded.png")
+        try:
+            acceptCookies = driver.find_elements_by_class_name("btn-read-ck")
+            counter = 0
+            for button in acceptCookies:
+                if counter == 0:
+                    button.click()
+                counter = counter + 1
+        except :
+            print("Site didnt ask to accept cookies")
+
+        try:
+            addProduct = wait.until(EC.element_to_be_clickable((By.ID, "item_add_cart")))
+            addProduct.click()
+            print("Adding to cart")
+            self.productInCart = True
+            statusFile = open(self.statusPath, 'w')
+            statusFile.truncate()
+            statusFile.write("Adding to cart")
+            statusFile.close()
+        except :
+            print("Out of Stock")
+            statusFile = open(self.statusPath, 'w')
+            statusFile.truncate()
+            statusFile.write("Out of Stock")
+            statusFile.close()
+
+    def checkout(self, driver):
+        print("Attempting checkout")
+        statusFile = open(self.statusPath, 'w')
+        statusFile.truncate()
+        statusFile.write("Attempting checkout!")
+        statusFile.close()
+        driver.get(self.cartLink)
+        wait = WebDriverWait(driver, 15)
+        wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div/div[2]/main/div/div/div[3]/div/aside/div/div[3]/button")))
+        driver.get_screenshot_as_file("screenshots/cartLoaded.png")
+        #checkoutButton = driver.find_element_by_xpath('/html/body/div/div[2]/main/div/div/div[3]/div/aside/div/div[3]/button')
+        promoCode = driver.find_element_by_id("inline-form-input-promCode")
+        promoCode.click()
+
+        actions = ActionChains(driver)
+        actions.send_keys(Keys.TAB + Keys.ENTER)
+        actions.perform()
+
+        time.sleep(2)
+        driver.get_screenshot_as_file("screenshots/HitCheckout.png")
+        driver.get(self.checkoutLink)
+
+        #wait.until(EC.presence_of_element_located((By.ID, "customer-info-1__firstName")))
+        #wait.until(EC.element_to_be_clickable(By.ID, "customer-info-1__firstName"))
+        # firstNameInput = driver.find_element_by_id("customer-info-1__firstName")
+        # firstNameInput.send_keys(self.profile.shippingFirstName)
+        driver.get_screenshot_as_file("screenshots/ShippngLoaded!.png")
+        statusFile = open(self.statusPath, 'w')
+        statusFile.truncate()
+        statusFile.write("Entering Shipping..")
+        statusFile.close()
+
+        #Determine When cart loaded
+        time.sleep(5)
+        driver.get_screenshot_as_file("screenshots/waitingCart.png")
+
+    def run(self):
+        print("Thread Started")
+        dcap = dict(DesiredCapabilities.PHANTOMJS)
+        dcap["phantomjs.page.settings.userAgent"] = (
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/53 "
+            "(KHTML, like Gecko) Chrome/15.0.87")
+        driver = webdriver.PhantomJS(executable_path=resource_path("./driver/phantomjs.exe"),
+                                    service_args=['--ignore-ssl-errors=true',
+                                        '--ssl-protocol=tslv1.0',
+                                        '--proxy=' + self.proxyLink,
+                                        '--proxy-type=http',
+                                        '--proxy-auth={}:{}'.format(self.proxyUser, self.proxyPass)],
+                                        desired_capabilities=dcap)
+        driver.set_window_size(1400,1000)
+        wait = WebDriverWait(driver, 15)
+        nothingInCart = True
+        statusFile = open(self.statusPath, 'w')
+        statusFile.truncate()
+        statusFile.write("Setting things up...")
+        statusFile.close()
+        notLoggedIn = True
+        while notLoggedIn:
+            self.login(driver)
+            driver.get_screenshot_as_file("screenshots/loginAttempt.png")
+            if self.loggedIn == True:
+                print("Logged In!")
+                statusFile = open(self.statusPath, 'w')
+                statusFile.truncate()
+                statusFile.write("Logged In!")
+                statusFile.close()
+                notLoggedIn = False
+                break
+            self.checkCommands()
+            time.sleep(2)
+            self.checkCommands()
+            time.sleep(2)
+
+        statusFile = open(self.statusPath, 'w')
+        statusFile.truncate()
+        statusFile.write("Adding to cart")
+        statusFile.close()
+        while nothingInCart:
+            AsusExperimentalThread.addToCart(self, driver)
+            #self.checkStock(driver)
+            if self.productInCart == True:
+                print("Product added to Cart!")
+                nothingInCart = False
+                break
+            self.checkCommands()
+            time.sleep(2)
+            self.checkCommands()
+            time.sleep(2)
+            self.checkCommands()
+            time.sleep(2)
+        noCheckout = True
+        AsusExperimentalThread.checkout(self, driver)
+        time.sleep(50)
+        # while noCheckout:
+        #         AsusExperimentalThread.checkout(self, driver)
+        #         time.sleep(10)
+        #
+        #         if self.inCheckout == True:
+        #             print("Made it to checkout")
+
+class TargetMonitorThread(threading.Thread):
+    productNotInStock = True
+    webhookImage = "blank"
+    webhookTitle = "blank"
+    webhookLink = "https://discord.com/api/webhooks/803304991028281370/2oznki3M59Cb22A6GCE3hO1aBBCesysCnAR6Uh5SJwTazPO-O_gD7C3rDTlNOXxqT3ET"
+    def __init__(self, productLink, proxyLink, proxyUser, proxyPass, statusPath, commandsPath, webhook):
+        threading.Thread.__init__(self)
+        self.productLink = productLink
+        self.proxyLink = proxyLink
+        self.proxyUser = proxyUser
+        self.proxyPass = proxyPass
+        self.statusPath = statusPath
+        self.commandsPath = commandsPath
+        self.webhook = webhook
+
+    def checkCommands(self):
+            print("Checking Command..")
+            commandsFile = open(self.commandsPath)
+            command = commandsFile.readline()
+            stopTask = False
+            print("Command: " + command)
+            if command == "STOP":
+                stopTask = True
+                statusFile = open(self.statusPath, 'w')
+                statusFile.truncate()
+                statusFile.write("Stopped")
+                statusFile.close()
+            while stopTask == True:
+                commandsFile = open(self.commandsPath)
+                command = commandsFile.readline()
+                if command != "STOP":
+                    stopTask = False
+                    break
+                time.sleep(1)
+
+    def sendWebhook(self, driver):
+        print("Sending Webhook")
+
+
+
+        productTitle = driver.find_element_by_xpath("/html/body/div[1]/div/div[5]/div/div[1]/div[2]/h1/span")
+        titleText = productTitle.text
+        webhookTitle = titleText
+        #Grab Image
+        images = driver.find_elements_by_tag_name('img')
+        #productImage = driver.find_element_by_xpath("/html/body/div[1]/div/div[5]/div/div[2]/div[1]/div/div/div/div/div/div/div/div[1]/div/div[3]/a/div/div/div/picture/img")
+        imageSrc = images[0].get_attribute("src")
+        webhookImage = imageSrc
+        webhook = DiscordWebhook(url=self.webhook)
+        embed = DiscordEmbed(title=webhookTitle, description='Product Back in Stock!', color=366909)
+        embed.set_thumbnail(url = webhookImage)
+        embed.add_embed_field(name="Product Link", value="{}".format(self.productLink))
+        webhook.add_embed(embed)
+        response = webhook.execute()
+
+        time.sleep(60)
+
+    def checkStock(self, driver):
+        wait = WebDriverWait(driver, 10)
+        print("Checking Product...")
+        statusFile = open(self.statusPath, 'w')
+        statusFile.truncate()
+        statusFile.write("Monitoring...")
+        statusFile.close()
+        driver.get(self.productLink)
+        driver.get_screenshot_as_file("screenshots/targetProductPage.png")
+        try:
+            itemNotFound = driver.find_element_by_class_name("ProductNotFound__Title-sc-18ftl40-1")
+            statusFile = open(self.statusPath, 'w')
+            statusFile.truncate()
+            statusFile.write("Monitoring..")
+            statusFile.close()
+        except:
+            statusFile = open(self.statusPath, 'w')
+            statusFile.truncate()
+            statusFile.write("Item Back in Stock!!!")
+            statusFile.close()
+            self.sendWebhook(driver)
+
+
+    def run(self):
+        print("Webhook Link: " + self.webhook)
+        driver = webdriver.PhantomJS(executable_path=resource_path("./driver/phantomjs.exe"),
+                                    service_args=['--ignore-ssl-errors=true',
+                                        '--ssl-protocol=any',
+                                        '--proxy=' + self.proxyLink,
+                                        '--proxy-type=http',
+                                        '--proxy-auth={}:{}'.format(self.proxyUser, self.proxyPass)])
+
+        wait = WebDriverWait(driver, 15)
+        statusFile = open(self.statusPath, 'w')
+        statusFile.truncate()
+        statusFile.write("Setting things up...")
+        statusFile.close()
+        notAsleep = True
+        while notAsleep:
+            self.checkStock(driver)
+            if self.productNotInStock == False:
+                notAsleep = False
+                break
+            time.sleep(10)
 
 def threadGetTaskInfo():
    windowActive = True
@@ -1506,7 +1808,7 @@ def createTask(task, layout, creatorFrame, siteListComboBox, modeListComboBox, p
 
     deleteTaskButton = QPushButton()
     deleteTaskButton.setFixedWidth(75)
-    deleteTaskButton.clicked.connect(lambda: deleteTask(task, layout, creatorFrame, siteListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox,
+    deleteTaskButton.clicked.connect(lambda: deleteTask(task, layout, creatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox,
                                         taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
                                         saveTaskButton, createNewTaskButton) )
     deleteTaskButton.setText("Delete")
@@ -1669,6 +1971,8 @@ def hideCreateNewTask(creatorFrame):
 
 def saveWebhook(string):
     print("Webhook: " + string)
+    global serviceWebhook
+    serviceWebhook = string
     pickle_out = open("data/webhook.txt", "wb")
     pickle.dump(string, pickle_out)
     pickle_out.close()
@@ -1726,6 +2030,10 @@ def saveAccountData():
     pickle_out = open("data/accountsAsus.txt", "wb")
     pickle.dump(serviceAccountsAsus, pickle_out)
     pickle_out.close()
+    global serviceAccountsTarget
+    pickle_out = open("data/accountsTarget.txt", "wb")
+    pickle.dump(serviceAccountsTarget, pickle_out)
+    pickle_out.close()
 
 def saveAccountList(newAccountListTextEditor, site):
     print("Saving new account data for: " + site)
@@ -1741,6 +2049,9 @@ def saveAccountList(newAccountListTextEditor, site):
     global serviceAccountsAsus
     if site == "Asus":
         serviceAccountsAsus = newAccountListTextEditor.toPlainText()
+    global serviceAccountsTarget
+    if site == "Target":
+        serviceAccountsTarget = newAccountListTextEditor.toPlainText()
     saveAccountData()
 
 def loadProfileData(layout, profileNameLineEdit, nameOnCardLineEdit, cardNumberLineEdit,
@@ -1768,10 +2079,11 @@ def loadProfileData(layout, profileNameLineEdit, nameOnCardLineEdit, cardNumberL
 
 def loadSettingsData(webhookInputText):
     print("Loading Settings Data")
+    global serviceWebhook
     pickle_in = open("data/webhook.txt", "rb")
     if os.path.getsize("data/webhook.txt") > 0:
-        webhookData = pickle.load(pickle_in)
-        webhookInputText.setText(webhookData)
+        serviceWebhook = pickle.load(pickle_in)
+        webhookInputText.setText(serviceWebhook)
     global serviceAccountsBHPhoto
     pickle_in = open("data/accountsBH.txt", "rb")
     if os.path.getsize("data/accountsBH.txt") > 0:
@@ -1788,6 +2100,10 @@ def loadSettingsData(webhookInputText):
     pickle_in = open("data/accountsAsus.txt", "rb")
     if os.path.getsize("data/accountsAsus.txt") > 0:
         serviceAccountsAsus = pickle.load(pickle_in)
+    global serviceAccountsTarget
+    pickle_in = open("data/accountsTarget.txt", "rb")
+    if os.path.getsize("data/accountsTarget.txt") > 0:
+        serviceAccountsTarget = pickle.load(pickle_in)
 
 
 def loadProxieData():
@@ -1939,6 +2255,11 @@ def updateTaskAccountModeSelection(site, accountListComboBox, modeListComboBox )
             accountListComboBox.addItem(account)
         for mode in serviceAsusModes:
             modeListComboBox.addItem(mode)
+    if site == "Target":
+        for account in serviceAccountsTarget.splitlines():
+            accountListComboBox.addItem(account)
+        for mode in serviceTargetModes:
+            modeListComboBox.addItem(mode)
 
 def updateAccountsPage(accountListTextEditor, site):
     print("Updating Account page")
@@ -1951,6 +2272,8 @@ def updateAccountsPage(accountListTextEditor, site):
         accountListTextEditor.appendPlainText(serviceAccountsGamenerdz)
     if site == "Asus":
         accountListTextEditor.appendPlainText(serviceAccountsAsus)
+    if site == "Target":
+        accountListTextEditor.appendPlainText(serviceAccountsTarget)
 
 def updateProxiePage(proxyName, proxyList, proxy ):
     print("Updating Page")
@@ -2057,6 +2380,11 @@ def editTask(task, layout, creatorFrame, siteListComboBox, modeListComboBox, pro
             counter = counter + 1
     if task.site == "Asus":
         for account in serviceAccountsAsus.splitlines():
+            if account == task.account:
+                accountListComboBox.setCurrentIndex(counter)
+            counter = counter + 1
+    if task.site == "Target":
+        for account in serviceAccountsTarget.splitlines():
             if account == task.account:
                 accountListComboBox.setCurrentIndex(counter)
             counter = counter + 1
@@ -2270,13 +2598,24 @@ def launchTask(task):
             #subprocess.Popen([sys.executable, 'gameNerdzTestFireFox.py', completeProfileDataPath, completeTaskDataPath])
         if task.site == "Asus":
             print("Launching Asus Task: "+ task.name + "!")
-            newThread = AsusMonitorThread(task.productLink, proxieString, proxyUser, proxyPass, completeStatusDataPath, completeCommandsDataPath)
-            newThread.setDaemon(True)
-            newThread.start()
+            if task.mode == "Monitor":
+                newThread = AsusMonitorThread(task.productLink, proxieString, proxyUser, proxyPass, completeStatusDataPath, completeCommandsDataPath)
+                newThread.setDaemon(True)
+                newThread.start()
+            if task.mode == "Experimental":
+                newThread = AsusExperimentalThread(task, taskProfile, proxieString, proxyUser, proxyPass, completeStatusDataPath, completeCommandsDataPath)
+                newThread.setDaemon(True)
+                newThread.start()
             #thread = AsusMonitorThread(taskProfile, task, proxieString, statusPath)
             #subprocess.Popen([sys.executable, 'AsusTest.py', completeProfileDataPath, completeTaskDataPath, completeStatusDataPath])
         if task.site == "Walmart":
             print("Launching Walmart Task: "+ task.name + "!")
+        if task.site == "Target":
+            print("Launching Target Task: "+ task.name + "!")
+            if task.mode == "Monitor":
+                newThread = TargetMonitorThread(task.productLink, proxieString, proxyUser, proxyPass, completeStatusDataPath, completeCommandsDataPath, serviceWebhook)
+                newThread.setDaemon(True)
+                newThread.start()
         #serialize task data so it can be accesed by task
     else :
         commandsDataName = "commands.txt"

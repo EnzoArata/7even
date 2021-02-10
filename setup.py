@@ -16,7 +16,7 @@ installOptions = {
     'add_to_path': False}
 
 setup(name='7even',
-      version = '0.02',
+      version = '0.03',
       description = '7even: All in One Retail Bot',
       options = {'build_exe': build_options, 'bdist_msi': installOptions},
       executables = executables)
