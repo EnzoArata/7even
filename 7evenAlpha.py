@@ -590,6 +590,67 @@ class TargetMonitorThread(threading.Thread):
                 break
             time.sleep(10)
 
+class TargetMultiLinkThread(threading.Thread):
+    def __init__(self, productLink, proxyLink, proxyUser, proxyPass, webhook):
+        threading.Thread.__init__(self)
+        self.productLink = productLink
+        self.proxyLink = proxyLink
+        self.proxyUser = proxyUser
+        self.proxyPass = proxyPass
+        self.webhook = webhook
+
+
+    def sendWebhook(self, driver):
+        print("Sending Webhook")
+
+        productTitle = driver.find_element_by_xpath("/html/body/div[1]/div/div[5]/div/div[1]/div[2]/h1/span")
+        titleText = productTitle.text
+        webhookTitle = titleText
+        #Grab Image
+        images = driver.find_elements_by_tag_name('img')
+        #productImage = driver.find_element_by_xpath("/html/body/div[1]/div/div[5]/div/div[2]/div[1]/div/div/div/div/div/div/div/div[1]/div/div[3]/a/div/div/div/picture/img")
+        imageSrc = images[0].get_attribute("src")
+        webhookImage = imageSrc
+        webhook = DiscordWebhook(url=self.webhook)
+        embed = DiscordEmbed(title=webhookTitle, description='Product Back in Stock!', color=366909)
+        embed.set_thumbnail(url = webhookImage)
+        embed.add_embed_field(name="Product Link", value="{}".format(self.productLink))
+        webhook.add_embed(embed)
+        response = webhook.execute()
+
+        time.sleep(60)
+
+    def checkStock(self, driver):
+        wait = WebDriverWait(driver, 10)
+
+        driver.get(self.productLink)
+        driver.get_screenshot_as_file("screenshots/targetProductPage.png")
+        try:
+            itemNotFound = driver.find_element_by_class_name("ProductNotFound__Title-sc-18ftl40-1")
+
+        except:
+            self.sendWebhook(driver)
+
+
+    def run(self):
+        print("Webhook Link: " + self.webhook)
+        driver = webdriver.PhantomJS(executable_path=resource_path("./driver/phantomjs.exe"),
+                                    service_args=['--ignore-ssl-errors=true',
+                                        '--ssl-protocol=any',
+                                        '--proxy=' + self.proxyLink,
+                                        '--proxy-type=http',
+                                        '--proxy-auth={}:{}'.format(self.proxyUser, self.proxyPass)])
+
+        wait = WebDriverWait(driver, 15)
+        notAsleep = True
+        while notAsleep:
+            self.checkStock(driver)
+            if self.productNotInStock == False:
+                notAsleep = False
+                break
+            time.sleep(10)
+
+
 def threadGetTaskInfo():
    windowActive = True
    while windowActive:
@@ -1168,7 +1229,7 @@ def setUpTaskPage(layout):
     saveNewTaskButton.clicked.connect(lambda: saveTaskEdit(taskNameLineEdit.text(), siteListComboBox.currentText(), modeListComboBox.currentText(), profileListComboBox.currentText(),
                                         accountListComboBox.currentText(), proxieListComboBox.currentText(), productLinkLineEdit.text(), quantityLineEdit.text(),
                                         scrollLayout, taskCreatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox,
-                                        taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
+                                        taskNameLineEdit, productLinkLineEdit, productListTextEditor, quantityLineEdit,
                                         saveNewTaskButton, createNewTaskButton) )
     saveNewTaskButton.setText(" Save Task ")
     saveNewTaskButton.setFont(QFont('Corsiva', 22))
@@ -2470,7 +2531,7 @@ def editTask(task, layout, creatorFrame, siteListComboBox, modeListComboBox, pro
 def saveTaskEdit(taskName, site, mode, profile,
                 account, proxie, productLink, quantity,
                 layout, creatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox,
-                taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
+                taskNameLineEdit, productLinkLineEdit, productListTextEditor, quantityLineEdit,
                 saveNewTaskButton, createNewTaskButton):
         print("Saving Edit")
         global serviceHighlightedTask
@@ -2480,14 +2541,17 @@ def saveTaskEdit(taskName, site, mode, profile,
         serviceHighlightedTask.mode = mode
         serviceHighlightedTask.profile = profile
         serviceHighlightedTask.account = account
-        serviceHighlightedTask.productLink = productLink
+        if mode == "MultiLink Monitor":
+            serviceHighlightedTask.productLink = productListTextEditor.toPlainText()
+        if mode != "MultiLink Monitor":
+            serviceHighlightedTask.productLink = productLink
         serviceHighlightedTask.quantity = quantity
         serviceHighlightedTask.proxie = proxie
 
         for i in reversed(range(layout.count())):
             layout.itemAt(i).widget().setParent(None)
         for item in serviceTaskList:
-            createTask(item, layout, creatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, quantityLineEdit,
+            createTask(item, layout, creatorFrame, siteListComboBox, modeListComboBox, profileListComboBox, accountListComboBox, proxieListComboBox, taskNameLineEdit, productLinkLineEdit, productListTextEditor,  quantityLineEdit,
                         saveNewTaskButton, createNewTaskButton)
         saveTaskData()
         creatorFrame.hide()
@@ -2644,6 +2708,21 @@ def launchTask(task):
                 newThread = TargetMonitorThread(task.productLink, proxieString, proxyUser, proxyPass, completeStatusDataPath, completeCommandsDataPath, serviceWebhook)
                 newThread.setDaemon(True)
                 newThread.start()
+            if task.mode == "MultiLink Monitor":
+                productLinks = task.productLink.splitlines()
+                for link in productLinks:
+                    for proxie in serviceProxyList:
+                        if proxie.name == task.proxie and proxie.name != "Default List":
+                            splitProxies = proxie.list.splitlines()
+                            randomProxyNumber = randrange(len(splitProxies))
+                            proxieParts = re.split('[:]', splitProxies[randomProxyNumber])
+                            proxieString = ("http://"+proxieParts[0]+":"+proxieParts[1])
+                            proxyUser = proxieParts[2]
+                            proxyPass = proxieParts[3]
+                    #print("Starting Thread, using link " + link )
+                    newThread = TargetMultiLinkThread(link, proxieString, proxyUser, proxyPass, serviceWebhook)
+                    newThread.setDaemon(True)
+                    newThread.start()
         #serialize task data so it can be accesed by task
     else :
         commandsDataName = "commands.txt"
